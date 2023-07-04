@@ -7,6 +7,8 @@ BEGIN {
 /__BEGIN_FILE__/ {
     sub(/__BEGIN_FILE__ /, "", $0)
     split($0, parts, "___")
+    data["CompTime"] = 0.0
+    data["CommTime"] = 0.0
     data["Graph"] = parts[1]
 
     split(parts[2], parts, "_")
@@ -62,6 +64,13 @@ match($0, /`-- Partitioning: \.* ([0-9\.\-e]+) s/, m) {
     data["Time"] = m[1]
 }
 
+match($0, /Single chunk computation: \.*([0-9\.\-e]+)/, m) {
+    data["CompTime"] += m[1]
+}
+match($0, /Single chunk communication: \.*([0-9\.\-e]+)/, m) {
+    data["CommTime"] += m[1]
+}
+
 #match($0, /RESULT .*time=([0-9e\-\.]+).*/, m) {
     #data["Time"] = m[1]
 #}
@@ -80,6 +89,8 @@ function header() {
     printf "Epsilon,"
     printf "Balance,"
     printf "Time,"
+    printf "CompTime,"
+    printf "CommTime,"
     printf "NumNodes,"
     printf "NumMPIsPerNode,"
     printf "NumThreadsPerMPI,"
@@ -90,7 +101,7 @@ function yield() {
     if (length(data) == 0) { 
         return 
     }
-    failed = length(data) < 12
+    failed = length(data) < 14
 
     printf "%s,", data["Graph"]
     printf "%d,", data["N"]
@@ -101,6 +112,8 @@ function yield() {
     printf "%f,", data["Epsilon"]
     printf "%f,", data["Balance"]
     printf "%f,", data["Time"]
+    printf "%f,", data["CompTime"]
+    printf "%f,", data["CommTime"]
     printf "%d,", data["NumNodes"]
     printf "%d,", data["NumMPIsPerNode"]
     printf "%d,", data["NumThreadsPerMPI"]
