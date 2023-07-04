@@ -64,10 +64,10 @@ match($0, /`-- Partitioning: \.* ([0-9\.\-e]+) s/, m) {
     data["Time"] = m[1]
 }
 
-match($0, /Single chunk computation: \.*([0-9\.\-e]+)/, m) {
+match($0, /Single chunk computation: ([0-9\.\-e]+)/, m) {
     data["CompTime"] += m[1]
 }
-match($0, /Single chunk communication: \.*([0-9\.\-e]+)/, m) {
+match($0, /Single chunk communication: ([0-9\.\-e]+)/, m) {
     data["CommTime"] += m[1]
 }
 
