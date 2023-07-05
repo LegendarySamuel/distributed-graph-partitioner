@@ -112,8 +112,8 @@ function yield() {
     printf "%f,", data["Epsilon"]
     printf "%f,", data["Balance"]
     printf "%f,", data["Time"]
-    printf "%f,", data["CompTime"]
-    printf "%f,", data["CommTime"]
+    printf "%f,", data["CompTime"]/(data["NumNodes"]*data["NumMPIsPerNode"])
+    printf "%f,", data["CommTime"]/(data["NumNodes"]*data["NumMPIsPerNode"])
     printf "%d,", data["NumNodes"]
     printf "%d,", data["NumMPIsPerNode"]
     printf "%d,", data["NumThreadsPerMPI"]
