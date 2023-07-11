@@ -75,6 +75,12 @@ match($0, /Single chunk communication: ([0-9\.\-e]+)/, m) {
     #data["Time"] = m[1]
 #}
 
+match($0, /INPUT_GRAPH global_n=[0-9\.\+e]+ global_m=[0-9\.\+e]+ n=\[min=[0-9\.\+e]+\|avg=([0-9\.\+e]+)\|max=[0-9\.\+e]+\|sum=[0-9\.\+e]+\] m=[min=[0-9\.\+e]+\|avg=([0-9\.\+e]+)\|max=[0-9\.\+e]+\|sum=[0-9\.\+e]+\] ghost_n=[min=[0-9\.\+e]+\|avg=([0-9\.\+e]+)\|max=[0-9\.\+e]+\|sum=[0-9\.\+e]+\]/, m) {
+    data["LN"] = m[1]
+    data["LM"] = m[2]
+    data["GN"] = m[3]
+}
+
 END {
     yield()
 }
@@ -101,11 +107,14 @@ function yield() {
     if (length(data) == 0) { 
         return 
     }
-    failed = length(data) < 14
+    failed = length(data) < 17
 
     printf "%s,", data["Graph"]
     printf "%d,", data["N"]
     printf "%d,", data["M"]
+    printf "%d,", data["LN"]
+    printf "%d,", data["LM"]
+    printf "%d,", data["GN"]
     printf "%d,", data["K"]
     printf "%d,", data["Seed"]
     printf "%d,", data["Cut"]
