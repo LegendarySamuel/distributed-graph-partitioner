@@ -110,7 +110,7 @@ function yield() {
     if (length(data) == 0) { 
         return 
     }
-    failed = length(data) < 17
+    failed = length(data) < 14
 
     printf "%s,", data["Graph"]
     printf "%d,", data["N"]
