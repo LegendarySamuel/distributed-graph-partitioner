@@ -75,11 +75,11 @@ match($0, /Single chunk communication: ([0-9\.\-e]+)/, m) {
     #data["Time"] = m[1]
 #}
 
-match($0, /INPUT_GRAPH global_n=[0-9\.\+e]+ global_m=[0-9\.\+e]+ n=\[min=[0-9\.\+e]+\|avg=([0-9\.\+e]+)\|max=[0-9\.\+e]+\|sum=[0-9\.\+e]+\] m=[min=[0-9\.\+e]+\|avg=([0-9\.\+e]+)\|max=[0-9\.\+e]+\|sum=[0-9\.\+e]+\] ghost_n=[min=[0-9\.\+e]+\|avg=([0-9\.\+e]+)\|max=[0-9\.\+e]+\|sum=[0-9\.\+e]+\]/, m) {
-    data["LN"] = m[1]
-    data["LM"] = m[2]
-    data["GN"] = m[3]
-}
+#match($0, /INPUT_GRAPH global_n=[0-9\.\+e]+ global_m=[0-9\.\+e]+ n=\[min=[0-9\.\+e]+\|avg=([0-9\.\+e]+)\|max=[0-9\.\+e]+\|sum=[0-9\.\+e]+\] m=[min=[0-9\.\+e]+\|avg=([0-9\.\+e]+)\|max=[0-9\.\+e]+\|sum=[0-9\.\+e]+\] ghost_n=[min=[0-9\.\+e]+\|avg=([0-9\.\+e]+)\|max=[0-9\.\+e]+\|sum=[0-9\.\+e]+\]/, m) {
+    #data["LN"] = m[1]
+    #data["LM"] = m[2]
+    #data["GN"] = m[3]
+#}
 
 END {
     yield()
@@ -90,9 +90,9 @@ function header() {
     printf "N,"
     printf "M,"
     printf "K,"
-    printf "LN,"
-    printf "LM,"
-    printf "GN,"
+    #printf "LN,"
+    #printf "LM,"
+    #printf "GN,"
     printf "Seed,"
     printf "Cut,"
     printf "Epsilon,"
@@ -115,9 +115,9 @@ function yield() {
     printf "%s,", data["Graph"]
     printf "%d,", data["N"]
     printf "%d,", data["M"]
-    printf "%d,", data["LN"]
-    printf "%d,", data["LM"]
-    printf "%d,", data["GN"]
+    #printf "%d,", data["LN"]
+    #printf "%d,", data["LM"]
+    #printf "%d,", data["GN"]
     printf "%d,", data["K"]
     printf "%d,", data["Seed"]
     printf "%d,", data["Cut"]
