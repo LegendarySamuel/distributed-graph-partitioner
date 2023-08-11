@@ -9,6 +9,14 @@ BEGIN {
     split($0, parts, "___")
     data["CompTime"] = 0.0
     data["CommTime"] = 0.0
+    data["mPerLevel"] = ""
+    data["ImbalancePerLevel"] = ""
+    data["CoarseningTime"] = 0.0
+    data["InitialPartitioningTime"] = 0.0
+    data["UncoarseningTime"] = 0.0
+    data["MPICommTime"] = 0.0
+    data["RestCommTime"] = 0.0
+
     data["Graph"] = parts[1]
 
     split(parts[2], parts, "_")
@@ -71,6 +79,44 @@ match($0, /Single chunk communication: ([0-9\.\-e]+)/, m) {
     data["CommTime"] += m[1]
 }
 
+match($0, /Coarsening \-> Level [0-9]+,[0-9]+/) {
+    data["NumLevels"] += 1
+}
+
+match($0, /Number of edges: *(\[Min=[0-9]+ \| Mean=[0-9]+ \| Max=[0-9]+ \| Imbalance=[0-9\.\-e]+\])/, m) {
+    data["mPerLevel"] += m[1] + "_"
+}
+
+match($0, /Number of edges: *\[Min=[0-9]+ \| Mean=[0-9]+ \| Max=[0-9]+ \| Imbalance=([0-9\.\-e]+)\]/, m) {
+    data["ImbalancePerLevel"] += m[1] + "_"
+}
+
+match($0, /    \|    \|-- Coarsening (Level 0): \.* ([0-9\.\-e]+) s/, m) {
+    data["CoarseningLevel0"] = m[1]
+}
+
+match($0, /    \|-- Coarsening: \.* ([0-9\.\-e]+) s/, m) {
+    data["CoarseningTime"] = m[1]
+}
+
+match($0, /    \|-- Initial partitioning: \.* ([0-9\.\-e]+) s/, m) {
+    data["InitialPartitioningTime"] = m[1]
+}
+
+match($0, /    \|-- Uncoarsening: \.* ([0-9\.\-e]+) s/, m) {
+    data["UncoarseningTime"] = m[1]
+}
+
+match($0, /    `-- Uncoarsening: \.* ([0-9\.\-e]+) s/, m) {
+    data["UncoarseningTime"] = m[1]
+}
+
+match($0, /MPI Communication: ([0-9\.\-e]+)/, m) {
+    data["MPICommTime"] += m[1]
+}
+
+
+
 #match($0, /RESULT .*time=([0-9e\-\.]+).*/, m) {
     #data["Time"] = m[1]
 #}
@@ -100,6 +146,15 @@ function header() {
     printf "Time,"
     printf "CompTime,"
     printf "CommTime,"
+    printf "NumLevels,"
+    printf "mPerLevel,"
+    printf "ImbalancePerLevel,"
+    printf "CoarseningLevel0,"
+    printf "CoarseningTime,"
+    printf "InitialPartitioningTime,"
+    printf "UncoarseningTime,"
+    printf "MPICommTime,"
+    printf "RestCommTime,"
     printf "NumNodes,"
     printf "NumMPIsPerNode,"
     printf "NumThreadsPerMPI,"
@@ -110,7 +165,7 @@ function yield() {
     if (length(data) == 0) { 
         return 
     }
-    failed = length(data) < 14
+    failed = length(data) < 23
 
     printf "%s,", data["Graph"]
     printf "%d,", data["N"]
@@ -126,6 +181,15 @@ function yield() {
     printf "%f,", data["Time"]
     printf "%f,", data["CompTime"]/(data["NumNodes"]*data["NumMPIsPerNode"])
     printf "%f,", data["CommTime"]/(data["NumNodes"]*data["NumMPIsPerNode"])
+    printf "%d,", data["NumLevels"]
+    printf "%s,", data["mPerLevel"]
+    printf "%s,", data["ImbalancePerLevel"]
+    printf "%f,", data["CoarseningLevel0"]
+    printf "%f,", data["CoarseningTime"]
+    printf "%f,", data["InitialPartitioningTime"]
+    printf "%f,", data["UncoarseningTime"]
+    printf "%f,", data["MPICommTime"]/(data["NumNodes"]*data["NumMPIsPerNode"])
+    printf "%f,", data["CommTime"] - (["MPICommTime"]/(data["NumNodes"]*data["NumMPIsPerNode"]))
     printf "%d,", data["NumNodes"]
     printf "%d,", data["NumMPIsPerNode"]
     printf "%d,", data["NumThreadsPerMPI"]
