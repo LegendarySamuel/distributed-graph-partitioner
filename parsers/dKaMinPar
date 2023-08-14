@@ -85,11 +85,17 @@ match($0, /Coarsening \-> Level [0-9]+,[0-9]+/) {
 }
 
 match($0, /Number of edges: *(\[Min=[0-9]+ \| Mean=[0-9]+ \| Max=[0-9]+) \| Imbalance=[0-9\.\-e]+\]/, m) {
-    data["mPerLevel"] = data["mPerLevel"]"_"m[1]"]"
+    if (data["mPerLevel"] == "")
+        data["mPerLevel"] = m[1]
+    else
+        data["mPerLevel"] = data["mPerLevel"]"_"m[1]"]"
 }
 
 match($0, /Number of edges: *\[Min=[0-9]+ \| Mean=[0-9]+ \| Max=[0-9]+ \| Imbalance=([0-9\.\-e]+)\]/, m) {
-    data["ImbalancePerLevel"] += m[1] + "_"
+    if (data["ImbalancePerLevel"] == "")
+        data["ImbalancePerLevel"] = m[1]
+    else
+        data["ImbalancePerLevel"] = data["ImbalancePerLevel"]"_"m[1]
 }
 
 match($0, / *\| *\|-- Coarsening \(Level 0\): \.* ([0-9\.\-e]+) s/, m) {
