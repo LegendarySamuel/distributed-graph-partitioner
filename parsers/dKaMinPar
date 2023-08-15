@@ -84,11 +84,11 @@ match($0, /Coarsening \-> Level [0-9]+,[0-9]+/) {
     data["NumLevels"] += 1
 }
 
-match($0, /Number of edges: *(\[Min=[0-9]+ \| Mean=[0-9]+ \| Max=[0-9]+) \| Imbalance=[0-9\.\-e]+\]/, m) {
+match($0, /Number of edges: *\[Min=([0-9]+) \| Mean=([0-9]+) \| Max=([0-9]+) \| Imbalance=[0-9\.\-e]+\]/, m) {
     if (data["mPerLevel"] == "")
-        data["mPerLevel"] = m[1]"]"
+        data["mPerLevel"] = m[1]"#"m[2]"#"m[3]
     else
-        data["mPerLevel"] = data["mPerLevel"]"_"m[1]"]"
+        data["mPerLevel"] = data["mPerLevel"]"_"m[1]"#"m[2]"#"m[3]
 }
 
 match($0, /Number of edges: *\[Min=[0-9]+ \| Mean=[0-9]+ \| Max=[0-9]+ \| Imbalance=([0-9\.\-e]+)\]/, m) {
@@ -99,6 +99,10 @@ match($0, /Number of edges: *\[Min=[0-9]+ \| Mean=[0-9]+ \| Max=[0-9]+ \| Imbala
 }
 
 match($0, / *\| *\|-- Coarsening \(Level 0\): \.* ([0-9\.\-e]+) s/, m) {
+    data["CoarseningLevelZero"] = m[1]
+}
+
+match($0, / *\| *`-- Coarsening \(Level 0\): \.* ([0-9\.\-e]+) s/, m) {
     data["CoarseningLevelZero"] = m[1]
 }
 
