@@ -17,6 +17,9 @@ BEGIN {
     data["UncoarseningTime"] = 0.0
     data["MPICommTime"] = 0.0
     data["RestCommTime"] = 0.0
+    data["ClusteringTime"] = 0.0
+    data["InitClustering"] = ""
+    data["CompClustering"] = ""
 
     data["Graph"] = parts[1]
 
@@ -126,6 +129,27 @@ match($0, /MPI Communication: ([0-9\.\-e]+)/, m) {
     data["MPICommTime"] += m[1]
 }
 
+match($0, / *| *| *|-- Initialize label propagation clustering: \.* ([0-9\.\-e]+) s/, m) {
+    data["ClusteringTime"] += m[1]
+}
+
+match($0, / *| *| *|-- Compute label propagation clustering: \.* ([0-9\.\-e]+) s/, m) {
+    data["ClusteringTime"] += m[1]
+}
+
+match($0, / *| *| *|-- Initialize label propagation clustering: \.* ([0-9\.\-e]+) s/, m) {
+    if (data["InitClustering"] == "")
+        data["InitClustering"] = m[1]
+    else
+        data["InitClustering"] = data["InitClustering"]"_"m[1]
+}
+
+match($0, / *| *| *|-- Compute label propagation clustering: \.* ([0-9\.\-e]+) s/, m) {
+    if (data["CompClustering"] == "")
+        data["CompClustering"] == m[1]
+    else
+        data["CompClustering"] == data["CompClustering"]"_"m[1]
+}
 
 
 #match($0, /RESULT .*time=([0-9e\-\.]+).*/, m) {
@@ -166,6 +190,9 @@ function header() {
     printf "UncoarseningTime,"
     printf "MPICommTime,"
     printf "RestCommTime,"
+    printf "ClusteringTime,"
+    printf "InitClustering,"
+    printf "CompClustering,"
     printf "NumNodes,"
     printf "NumMPIsPerNode,"
     printf "NumThreadsPerMPI,"
@@ -176,7 +203,7 @@ function yield() {
     if (length(data) == 0) { 
         return 
     }
-    failed = length(data) < 23
+    failed = length(data) < 26
 
     printf "%s,", data["Graph"]
     printf "%d,", data["N"]
@@ -201,6 +228,9 @@ function yield() {
     printf "%f,", data["UncoarseningTime"]
     printf "%f,", data["MPICommTime"]/(data["NumNodes"]*data["NumMPIsPerNode"])
     printf "%f,", data["CommTime"] - (data["MPICommTime"]/(data["NumNodes"]*data["NumMPIsPerNode"]))
+    printf "%f,", data["ClusteringTime"]
+    printf "%s,", data["InitClustering"]
+    printf "%s,", data["CompClustering"]
     printf "%d,", data["NumNodes"]
     printf "%d,", data["NumMPIsPerNode"]
     printf "%d,", data["NumThreadsPerMPI"]
