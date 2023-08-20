@@ -146,9 +146,9 @@ match($0, / *| *| *|-- Initialize label propagation clustering: \.* ([0-9\.\-e]+
 
 match($0, / *| *| *|-- Compute label propagation clustering: \.* ([0-9\.\-e]+) s/, m) {
     if (data["CompClustering"] == "")
-        data["CompClustering"] == m[1]
+        data["CompClustering"] = m[1]
     else
-        data["CompClustering"] == data["CompClustering"]"_"m[1]
+        data["CompClustering"] = data["CompClustering"]"_"m[1]
 }
 
 
