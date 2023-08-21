@@ -20,6 +20,8 @@ BEGIN {
     data["ClusteringTime"] = 0.0
     data["InitClustering"] = ""
     data["CompClustering"] = ""
+    data["NumMoves"] = 0
+    data["NumLabelUpdates"] = 0
 
     data["Graph"] = parts[1]
 
@@ -133,17 +135,9 @@ match($0, /\|-- Initialize label propagation clustering: \.* ([0-9\.\-e]+) s/, m
     data["ClusteringTime"] += m[1]
 }
 
-#match($0, / *\| *\|-- Initialize label propagation clustering: \.* ([0-9\.\-e]+) s/, m) {
-#    data["ClusteringTime"] += m[1]
-#}
-
 match($0, /\|-- Compute label propagation clustering: \.* ([0-9\.\-e]+) s/, m) {
     data["ClusteringTime"] += m[1]
 }
-
-#match($0, / *\| *\|-- Compute label propagation clustering: \.* ([0-9\.\-e]+) s/, m) {
-#    data["ClusteringTime"] += m[1]
-#}
 
 match($0, /\|-- Initialize label propagation clustering: \.* ([0-9\.\-e]+) s/, m) {
     if (data["InitClustering"] == "")
@@ -152,13 +146,6 @@ match($0, /\|-- Initialize label propagation clustering: \.* ([0-9\.\-e]+) s/, m
         data["InitClustering"] = data["InitClustering"]"_"m[1]
 }
 
-#match($0, / *\| *\|-- Initialize label propagation clustering: \.* ([0-9\.\-e]+) s/, m) {
-#    if (data["InitClustering"] == "")
-#        data["InitClustering"] = m[1]
-#    else
-#        data["InitClustering"] = data["InitClustering"]"_"m[1]        
-#}
-
 match($0, /\|-- Compute label propagation clustering: \.* ([0-9\.\-e]+) s/, m) {
     if (data["CompClustering"] == "")
         data["CompClustering"] = m[1]
@@ -166,23 +153,13 @@ match($0, /\|-- Compute label propagation clustering: \.* ([0-9\.\-e]+) s/, m) {
         data["CompClustering"] = data["CompClustering"]"_"m[1]
 }
 
-#match($0, / *\| *\|-- Compute label propagation clustering: \.* ([0-9\.\-e]+) s/, m) {
-#    if (data["CompClustering"] == "")
-#        data["CompClustering"] = m[1]
-#    else
-#        data["CompClustering"] = data["CompClustering"]"_"m[1]
-#}
+match($0, /_changed_label all: ([0-9]+)/, m) {
+    data["NumMoves"] += m[1]
+}
 
-
-#match($0, /RESULT .*time=([0-9e\-\.]+).*/, m) {
-    #data["Time"] = m[1]
-#}
-
-#match($0, /INPUT_GRAPH global_n=[0-9\.\+e]+ global_m=[0-9\.\+e]+ n=\[min=[0-9\.\+e]+\|avg=([0-9\.\+e]+)\|max=[0-9\.\+e]+\|sum=[0-9\.\+e]+\] m=[min=[0-9\.\+e]+\|avg=([0-9\.\+e]+)\|max=[0-9\.\+e]+\|sum=[0-9\.\+e]+\] ghost_n=[min=[0-9\.\+e]+\|avg=([0-9\.\+e]+)\|max=[0-9\.\+e]+\|sum=[0-9\.\+e]+\]/, m) {
-    #data["LN"] = m[1]
-    #data["LM"] = m[2]
-    #data["GN"] = m[3]
-#}
+match($0, /_changed_label all: ([0-9]+)/, m) {
+    data["NumLabelUpdates"] += m[1]
+}
 
 END {
     yield()
@@ -215,6 +192,8 @@ function header() {
     printf "ClusteringTime,"
     printf "InitClustering,"
     printf "CompClustering,"
+    printf "NumMoves,"
+    printf "NumLabelUpdates,"
     printf "NumNodes,"
     printf "NumMPIsPerNode,"
     printf "NumThreadsPerMPI,"
@@ -225,7 +204,7 @@ function yield() {
     if (length(data) == 0) { 
         return 
     }
-    failed = length(data) < 26
+    failed = length(data) < 28
 
     printf "%s,", data["Graph"]
     printf "%d,", data["N"]
@@ -253,6 +232,8 @@ function yield() {
     printf "%f,", data["ClusteringTime"]
     printf "%s,", data["InitClustering"]
     printf "%s,", data["CompClustering"]
+    printf "%d,", data["NumMoves"]
+    printf "%d,", data["NumLabelUpdates"]
     printf "%d,", data["NumNodes"]
     printf "%d,", data["NumMPIsPerNode"]
     printf "%d,", data["NumThreadsPerMPI"]
