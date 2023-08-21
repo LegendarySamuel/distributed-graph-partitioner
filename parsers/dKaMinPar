@@ -157,7 +157,7 @@ match($0, /_changed_label all: ([0-9]+)/, m) {
     data["NumMoves"] += m[1]
 }
 
-match($0, /_changed_label all: ([0-9]+)/, m) {
+match($0, /_changed_label interface: ([0-9]+)/, m) {
     data["NumLabelUpdates"] += m[1]
 }
 
