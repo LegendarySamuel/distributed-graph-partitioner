@@ -228,7 +228,7 @@ function yield() {
     printf "%f,", data["InitialPartitioningTime"]
     printf "%f,", data["UncoarseningTime"]
     printf "%f,", data["MPICommTime"]/(data["NumNodes"]*data["NumMPIsPerNode"])
-    printf "%f,", data["CommTime"] - (data["MPICommTime"]/(data["NumNodes"]*data["NumMPIsPerNode"]))
+    printf "%f,", (data["CommTime"]/(data["NumNodes"]*data["NumMPIsPerNode"]) - (data["MPICommTime"]/(data["NumNodes"]*data["NumMPIsPerNode"]))
     printf "%f,", data["ClusteringTime"]
     printf "%s,", data["InitClustering"]
     printf "%s,", data["CompClustering"]
