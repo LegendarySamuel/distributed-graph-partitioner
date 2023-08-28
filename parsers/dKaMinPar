@@ -7,8 +7,11 @@ BEGIN {
 /__BEGIN_FILE__/ {
     sub(/__BEGIN_FILE__ /, "", $0)
     split($0, parts, "___")
+    data["Cut"] = 0
+    data["Time"] = 0.0
     data["CompTime"] = 0.0
     data["CommTime"] = 0.0
+    data["NumLevels"] = 0
     data["mPerLevel"] = ""
     data["ImbalancePerLevel"] = ""
     data["CoarseningLevel0"] = 0.0
