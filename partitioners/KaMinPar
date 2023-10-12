@@ -1,73 +1,8 @@
 #!/bin/bash
-. "$script_pwd/../partitioners/_KaGenPartitioner"
 
-InstallDiskDriver() {
-    local -n args=$1
+. "$script_pwd/../partitioners/inc/git.sh"
+. "$script_pwd/../partitioners/inc/kagen-partitioner.sh"
 
-    src_dir="$PREFIX/src/${args[algorithm_version]}/KaMinPar"
+KAMINPAR_USE_PUBLIC_REPOSITORY=1
 
-    if [[ ! -d "$src_dir" ]]; then 
-        mkdir -p "$src_dir"
-        git clone git@github.com:LegendarySamuel/KaMinPar.git "$src_dir"
-        git -C "$src_dir" submodule update --init --recursive
-    else 
-        git -C "$src_dir" fetch origin
-        git -C "$src_dir" submodule update
-    fi
-
-    branch="main"
-    if [[ "${args[algorithm_version]}" != "latest" ]]; then 
-        branch="$version"
-    fi
-    git -C "$src_dir" reset --hard "origin/$branch"
-
-    cmake -S "$src_dir" -B "$src_dir/build" -DCMAKE_BUILD_TYPE=Release $CUSTOM_CMAKE_FLAGS ${args[build_options]}
-    cmake --build "$src_dir/build" --target KaMinPar --parallel
-    cp "$src_dir/build/apps/KaMinPar" "${args[binary_disk]}"
-}
-
-InstallKaGenDriver() {
-    local -n args=$1
-
-    src_dir="$PREFIX/src/KaGen-Partitioner"
-    if [[ ! -d "$src_dir" ]]; then
-        git clone git@github.com:KaHIP/KaGen-Partitioner.git "$src_dir"
-    else 
-        git -C "$src_dir" pull 
-    fi
-        
-    cmake -S "$src_dir" -B "$src_dir/build" -DCMAKE_BUILD_TYPE=Release -DBUILD_KAMINPAR=On $CUSTOM_CMAKE_FLAGS ${args[build_options]}
-    cmake --build "$src_dir/build" --parallel
-    cp "$src_dir/build/KaMinPar" "${args[binary_kagen]}"
-}
-
-Fetch() {
-    return
-}
-
-Install() {
-    local -n install_args=$1
-    
-    if (( ${install_args[install_disk]} )); then 
-        InstallDiskDriver install_args
-    fi
-    if (( ${install_args[install_kagen]} )); then 
-        InstallKaGenDriver install_args
-    fi
-}
-
-InvokeFromDisk() {
-    local -n args=$1
-    
-    graph="${args[graph]}"
-    [[ -f "$graph.graph" ]] && graph="$graph.graph"
-    [[ -f "$graph.metis" ]] && graph="$graph.metis"
-
-    part_output="-o $misc_files_dir/${args[algorithm]}/${args[id]}.part"
-    if [[ -f "$graph" ]]; then
-        echo "${args[binary]} -G $graph -k ${args[k]} -e ${args[epsilon]} --seed=${args[seed]} -t ${args[num_threads]} -T ${args[algorithm_arguments]} $part_output"
-    else 
-        >&2 echo "Warning: Graph $graph does not exist"
-        return 1
-    fi
-}
+. "$script_pwd/../partitioners/inc/kaminpar.sh"
