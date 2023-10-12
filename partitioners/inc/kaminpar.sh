@@ -15,7 +15,13 @@ Fetch() {
 }
 
 FetchDiskDriver() {
-    GenericGitFetch $1 "https://github.com/KaHIP/KaHIP.git" "disk_driver_src"
+    local -n fetch_disk_driver_args=$1
+
+    if [[ $KAMINPAR_USE_PUBLIC_REPOSITORY == 1 ]]; then
+        GenericGitFetch fetch_disk_driver_args "git@github.com:KaHIP/KaMinPar.git" "disk_driver_src"
+    else 
+        GenericGitFetch fetch_disk_driver_args "git@github.com:DanielSeemaier/KaMinPar.git" "disk_driver_src"
+    fi
 }
 
 Install() {
@@ -25,7 +31,7 @@ Install() {
         InstallDiskDriver install_args
     fi
     if (( ${install_args[install_kagen_driver]} )); then 
-        GenericKaGenPartitionerInstall install_args "-DBUILD_MTKAHIP=Off -DBUILD_KAHIP=On" "KaHIP"
+        GenericKaGenPartitionerInstall install_args -DBUILD_KAMINPAR=On "KaMinPar"
     fi
 }
 
@@ -35,17 +41,18 @@ InstallDiskDriver() {
     src_dir="${install_disk_driver_args[disk_driver_src]}"
 
     echo -e "Build algorithm '$ALGO_COLOR${install_disk_driver_args[algorithm]}$NO_COLOR' in directory '$src_dir'"
-    echo -e "  - System-specific CMake options: ${WARNING_COLOR}ignored$NO_COLOR"
-    echo -e "  - Algorithm-specific options (passed to compile_withcmake.sh): $ARGS_COLOR${install_disk_driver_args[algorithm_build_options]}$NO_COLOR"
+    echo "  - System-specific CMake options: $CUSTOM_CMAKE_FLAGS"
+    echo -e "  - Algorithm-specific CMake options: $ARGS_COLOR${install_disk_driver_args[algorithm_build_options]}$NO_COLOR"
     echo ""
 
-    current_pwd="$PWD"
-
-    cd "$src_dir"
-    #export CMAKE_GENERATOR="Unix Makefiles"
-    CMAKE_GENERATOR="Unix Makefiles" Prefixed ./compile_withcmake.sh ${install_disk_driver_args[algorithm_build_options]}
-    cd "$current_pwd"
-    Prefixed cp "$src_dir/deploy/kaffpa" "${install_disk_driver_args[disk_driver_bin]}"
+    Prefixed cmake -S "$src_dir" \
+        -B "$src_dir/build" \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DKAMINPAR_BUILD_DISTRIBUTED=Off \
+        $CUSTOM_CMAKE_FLAGS \
+        ${install_disk_driver_args[algorithm_build_options]}
+    Prefixed cmake --build "$src_dir/build" --target KaMinPar --parallel
+    Prefixed cp "$src_dir/build/apps/KaMinPar" "${install_disk_driver_args[disk_driver_bin]}"
 }
 
 InvokeFromDisk() {
@@ -54,30 +61,33 @@ InvokeFromDisk() {
     graph="${invoke_from_disk_args[graph]}"
     [[ -f "$graph.graph" ]] && graph="$graph.graph"
     [[ -f "$graph.metis" ]] && graph="$graph.metis"
-    imbalance=$(echo "100*${invoke_from_disk_args[epsilon]}/1" | bc)
 
     if [[ "${invoke_from_disk_args[print_partitioner]}" == "1" ]]; then 
         >&2 echo -e "Generating calls for algorithm '$ALGO_COLOR${invoke_from_disk_args[algorithm]}$NO_COLOR', from disk, via the binary:"
         >&2 echo "  - Binary: ${invoke_from_disk_args[bin]}"
         >&2 echo "  - Generated arguments: "
-        >&2 echo -e "      --k=$ARGS_COLOR${invoke_from_disk_args[k]}$NO_COLOR"
-        >&2 echo -e "      --imbalance=$ARGS_COLOR$imbalance$NO_COLOR"
+        >&2 echo -e "      -G $ARGS_COLOR$graph$NO_COLOR"
+        >&2 echo -e "      -k $ARGS_COLOR${invoke_from_disk_args[k]}$NO_COLOR"
+        >&2 echo -e "      -e $ARGS_COLOR${invoke_from_disk_args[epsilon]}$NO_COLOR"
         >&2 echo -e "      --seed=$ARGS_COLOR${invoke_from_disk_args[seed]}$NO_COLOR"
-        >&2 echo -e "      $ARGS_COLOR$graph$NO_COLOR"
+        >&2 echo -e "      -t $ARGS_COLOR${invoke_from_disk_args[num_threads]}$NO_COLOR"
+        >&2 echo "      -T"
         >&2 echo -e "  - Specified arguments: $ARGS_COLOR${invoke_from_disk_args[algorithm_arguments]}$NO_COLOR"
         >&2 echo ""
     fi
 
     if [[ -f "$graph" ]]; then
         echo -n "${invoke_from_disk_args[bin]} "
-        echo -n "--k=${invoke_from_disk_args[k]} "
-        echo -n "--imbalance=$imbalance "
+        echo -n "-G $graph "
+        echo -n "-k ${invoke_from_disk_args[k]} "
+        echo -n "-e ${invoke_from_disk_args[epsilon]} "
         echo -n "--seed=${invoke_from_disk_args[seed]} "
-        echo -n "$graph "
+        echo -n "-t ${invoke_from_disk_args[num_threads]} "
+        echo -n "-T "
         echo -n "${invoke_from_disk_args[algorithm_arguments]}"
         echo ""
     else 
-        >&2 echo "Warning: Graph $graph does not exist"
+        >&2 echo "Warning: Graph $graph does not exist; skipping instance"
         return 1
     fi
 }
