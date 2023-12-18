@@ -123,8 +123,8 @@ GenerateJobfileHeader() {
 
     echo "export I_MPI_ASYNC_PROGRESS=1"
     echo "export I_MPI_ASYNC_PROGRESS_THREADS=1"
-    if [[ "${args[timeout]}" != "0" ]]; then
-        echo "I_MPI_JOB_TIMEOUT=${args[timeout]} "
+    if [[ "${args[timelimit]}" != "0" ]]; then
+        echo "I_MPI_JOB_TIMEOUT=${args[timelimit]} "
     fi
 }
 
