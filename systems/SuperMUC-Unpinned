@@ -101,21 +101,7 @@ GenerateJobfileHeader() {
     fi
     echo "#SBATCH --partition=$partition"
 
-    echo "module purge || true"
-    echo "module load spack/23.1.0"
-    echo "module load intel-toolkit/2023.2.0 || true"
-    echo "module load intel-tbb/${SUPERMUC_TBB_VERSION}"
-    echo "module unload intel/2023.2.0"
-    echo "module load gcc/${SUPERMUC_GCC_VERSION}"
-    if [[ "${args[mpi]}" == "OpenMPI" ]]; then 
-        echo "module unload intel-mpi"
-        echo "module load openmpi/${SUPERMUC_OPENMPI_VERSION}"
-    elif [[ "${args[mpi]}" == "IMPI" ]]; then
-        echo "module unload intel-mpi"
-        echo "module load intel-mpi/${SUPERMUC_IMPI_VERSION}"
-    fi
-    echo "module load cmake/${SUPERMUC_CMAKE_VERSION}"
-    echo "module load boost/${SUPERMUC_BOOST_VERSION}"
+    echo "module restore benchmark_mod_set"
 
     echo "unset OMP_NUM_THREADS"
     echo "unset OMP_PROC_BIND"
