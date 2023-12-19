@@ -7,6 +7,9 @@ BEGIN {
 /__BEGIN_FILE__/ {
     sub(/__BEGIN_FILE__ /, "", $0)
     split($0, parts, "___")
+
+    data["InitPartDelim"] = 0
+
     data["Cut"] = 0
     data["Time"] = 0.0
     data["CompTime"] = 0.0
@@ -25,6 +28,10 @@ BEGIN {
     data["CompClustering"] = ""
     data["NumMoves"] = 0
     data["NumLabelUpdates"] = 0
+    data["CutBefore"] = 0
+    data["CutPerLevel"] = ""
+    data["CutInitPart"] = 0
+    data["MPIATAVTime"] = 0
 
     data["Graph"] = parts[1]
 
@@ -164,6 +171,35 @@ match($0, /_changed_label interface: ([0-9]+)/, m) {
     data["NumLabelUpdates"] += m[1]
 }
 
+match($0, /Current Cut Before = ([0-9]+)/, m) {
+    if (data["CutBefore"] == 0)
+        data["CutBefore"] = m[1]
+}
+
+match($0, /Current Cut After = ([0-9]+)/, m) {
+    if (data["CutPerLevel"] == "")
+        data["CutPerLevel"] = m[1]
+    else
+        data["CutPerLevel"] = data["CutPerLevel"]"_"m[1]
+}
+
+match($0, /Initial partition/, m) {
+    data["InitPartDelim"] = 1
+}
+
+match($0, /^\s*$/, m) {
+    data["InitPartDelim"] = 0
+}
+
+match($0, /Cut: \s* ([0-9]+)/, m) {
+    if (data["InitPartDelim"] == 1)
+        data["CutInitPart"] = m[1]
+}
+
+match($0, /Alltoall\/Alltoallv MPI: \.* ([0-9\.\-e]+) s/, m) {
+    data["MPIATAVTime"] += m[1]
+}
+
 END {
     yield()
 }
@@ -197,6 +233,10 @@ function header() {
     printf "CompClustering,"
     printf "NumMoves,"
     printf "NumLabelUpdates,"
+    printf "CutBefore,"
+    printf "CutPerLevel,"
+    printf "CutInitPart,"
+    printf "MPIATAVTime,"
     printf "NumNodes,"
     printf "NumMPIsPerNode,"
     printf "NumThreadsPerMPI,"
@@ -238,6 +278,10 @@ function yield() {
     printf "%s,", data["CompClustering"]
     printf "%d,", data["NumMoves"]
     printf "%d,", data["NumLabelUpdates"]
+    printf "%d,", data["CutBefore"]
+    printf "%s,", data["CutPerLevel"]
+    printf "%d,", data["CutInitPart"]
+    printf "%f,", data["MPIATAVTime"]
     printf "%d,", data["NumNodes"]
     printf "%d,", data["NumMPIsPerNode"]
     printf "%d,", data["NumThreadsPerMPI"]
