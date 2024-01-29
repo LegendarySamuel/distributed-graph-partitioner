@@ -31,7 +31,10 @@ BEGIN {
     data["CutBefore"] = 0
     data["CutPerLevel"] = ""
     data["CutInitPart"] = 0
-    data["MPIATAVTime"] = 0
+    data["MPIATAVTime"] = 0.0
+    data["Iteration0"] = 0.0
+    data["Iteration1"] = 0.0
+    data["Iteration2"] = 0.0
 
     data["Graph"] = parts[1]
 
@@ -200,6 +203,19 @@ match($0, /Alltoall\/Alltoallv MPI: \.* ([0-9\.\-e]+) s/, m) {
     data["MPIATAVTime"] += m[1]
 }
 
+match($0, /Iteration 0: ([0-9\.\-e]+) s/, m) {
+    data["Iteration0"] += m[1]
+}
+
+match($0, /Iteration 1: ([0-9\.\-e]+) s/, m) {
+    data["Iteration1"] += m[1]
+}
+
+match($0, /Iteration 2: ([0-9\.\-e]+) s/, m) {
+    data["Iteration2"] += m[1]
+}
+
+
 END {
     yield()
 }
@@ -237,6 +253,9 @@ function header() {
     printf "CutPerLevel,"
     printf "CutInitPart,"
     printf "MPIATAVTime,"
+    printf "Iteration0,"
+    printf "Iteration1,"
+    printf "Iteration2,"
     printf "NumNodes,"
     printf "NumMPIsPerNode,"
     printf "NumThreadsPerMPI,"
@@ -282,6 +301,9 @@ function yield() {
     printf "%s,", data["CutPerLevel"]
     printf "%d,", data["CutInitPart"]
     printf "%f,", data["MPIATAVTime"]
+    printf "%f,", data["Iteration0"]
+    printf "%f,", data["Iteration1"]
+    printf "%f,", data["Iteration2"]
     printf "%d,", data["NumNodes"]
     printf "%d,", data["NumMPIsPerNode"]
     printf "%d,", data["NumThreadsPerMPI"]
